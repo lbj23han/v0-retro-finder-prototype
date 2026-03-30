@@ -4,9 +4,15 @@ import { useState, useMemo } from "react";
 import { RetroSidebar } from "./retro-sidebar";
 import { RetroHeader } from "./retro-header";
 import { ProjectCard } from "./project-card";
-import { ProjectDetailOverlay } from "./project-detail-overlay";
-import { retroMockData, searchMapping, RetroProject } from "@/lib/mock-data";
-import { Sparkles, ChevronLeft, ChevronRight, Target, Zap, Database } from "lucide-react";
+import { retroMockData, searchMapping } from "@/lib/mock-data";
+import {
+  Sparkles,
+  ChevronLeft,
+  ChevronRight,
+  Target,
+  Zap,
+  Database,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function RetroDashboard() {
@@ -14,7 +20,7 @@ export function RetroDashboard() {
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [isSearching, setIsSearching] = useState(false);
   const [appliedSearch, setAppliedSearch] = useState("");
-  const [selectedProject, setSelectedProject] = useState<RetroProject | null>(null);
+  const [activeCardId, setActiveCardId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
 
   const filteredProjects = useMemo(() => {
@@ -23,9 +29,11 @@ export function RetroDashboard() {
     // Apply status filter
     if (selectedStatus !== "all") {
       results = results.filter((p) => {
-        if (selectedStatus === "prototype") return p.status.includes("프로토타입");
+        if (selectedStatus === "prototype")
+          return p.status.includes("프로토타입");
         if (selectedStatus === "paused") return p.status === "중단";
-        if (selectedStatus === "softlaunch") return p.status.includes("소프트런치");
+        if (selectedStatus === "softlaunch")
+          return p.status.includes("소프트런치");
         if (selectedStatus === "failed") return p.status === "실패";
         return true;
       });
@@ -33,13 +41,14 @@ export function RetroDashboard() {
 
     // Apply search
     if (appliedSearch) {
-      const matchingTags = Object.entries(searchMapping).find(([key]) =>
-        appliedSearch.includes(key)
-      )?.[1] || [];
-      
+      const matchingTags =
+        Object.entries(searchMapping).find(([key]) =>
+          appliedSearch.includes(key),
+        )?.[1] || [];
+
       if (matchingTags.length > 0) {
         results = results.filter((p) =>
-          p.failureTags.some((tag) => matchingTags.includes(tag))
+          p.failureTags.some((tag) => matchingTags.includes(tag)),
         );
       } else {
         // Fallback: search in project name, tags, or summary
@@ -48,7 +57,7 @@ export function RetroDashboard() {
           (p) =>
             p.projectName.toLowerCase().includes(query) ||
             p.failureTags.some((tag) => tag.toLowerCase().includes(query)) ||
-            p.oneLineSummary.toLowerCase().includes(query)
+            p.oneLineSummary.toLowerCase().includes(query),
         );
       }
     }
@@ -56,7 +65,10 @@ export function RetroDashboard() {
     return results;
   }, [selectedStatus, appliedSearch]);
 
-  const visibleProjects = filteredProjects.slice(currentPage * 3, currentPage * 3 + 3);
+  const visibleProjects = filteredProjects.slice(
+    currentPage * 3,
+    currentPage * 3 + 3,
+  );
   const totalPages = Math.ceil(filteredProjects.length / 3);
 
   const handleSearchSubmit = () => {
@@ -94,13 +106,23 @@ export function RetroDashboard() {
         <div className="p-6">
           {/* Page Header */}
           <div className="mb-6">
-            <h1 className="mb-1 text-2xl font-bold text-foreground">Project Insight Cards</h1>
-            <p className="mb-4 text-sm text-muted-foreground">
-              활성 및 보관된 저장소 전반의 학습 내용을 탐색하십시오.
+            <h1 className="mb-1 text-2xl font-bold text-foreground">
+              Project Insight Cards
+            </h1>
+            <p
+              suppressHydrationWarning
+              className="mb-4 text-sm text-muted-foreground"
+            >
+              우리가 실패로 쌓아온 자산, 이제 쉽게 꺼내보세요.
             </p>
             <div className="inline-flex items-center gap-1.5 rounded-full border border-violet-200 bg-violet-50 px-3 py-1.5">
               <Sparkles className="h-3.5 w-3.5 text-violet-600" />
-              <span className="text-xs font-medium text-violet-700">AI 추천</span>
+              <span
+                suppressHydrationWarning
+                className="text-xs font-medium text-violet-700"
+              >
+                AI 검색기능을 활용해 보세요
+              </span>
             </div>
           </div>
 
@@ -109,7 +131,9 @@ export function RetroDashboard() {
             <div className="flex h-64 items-center justify-center">
               <div className="flex flex-col items-center gap-3">
                 <div className="h-8 w-8 animate-spin rounded-full border-2 border-violet-200 border-t-violet-600" />
-                <p className="text-sm text-muted-foreground">유사한 실패 패턴을 분석 중...</p>
+                <p className="text-sm text-muted-foreground">
+                  유사한 실패 패턴을 분석 중...
+                </p>
               </div>
             </div>
           )}
@@ -119,7 +143,9 @@ export function RetroDashboard() {
             <>
               {filteredProjects.length === 0 ? (
                 <div className="flex h-64 flex-col items-center justify-center rounded-xl border border-dashed border-border bg-white">
-                  <p className="mb-2 text-lg font-medium text-foreground">검색 결과가 없습니다</p>
+                  <p className="mb-2 text-lg font-medium text-foreground">
+                    검색 결과가 없습니다
+                  </p>
                   <p className="text-sm text-muted-foreground">
                     검색어를 수정하거나 필터 조건을 완화해보세요
                   </p>
@@ -150,8 +176,10 @@ export function RetroDashboard() {
                       <ProjectCard
                         key={project.id}
                         project={project}
-                        onClick={() => setSelectedProject(project)}
-                        isFaded={!!selectedProject && selectedProject.id !== project.id}
+                        onFlip={(id) => setActiveCardId(id)}
+                        isFaded={
+                          activeCardId !== null && activeCardId !== project.id
+                        }
                       />
                     ))}
                   </div>
@@ -165,7 +193,9 @@ export function RetroDashboard() {
                           onClick={() => setCurrentPage(i)}
                           className={cn(
                             "h-2 rounded-full transition-all",
-                            i === currentPage ? "w-6 bg-violet-600" : "w-2 bg-gray-300 hover:bg-gray-400"
+                            i === currentPage
+                              ? "w-6 bg-violet-600"
+                              : "w-2 bg-gray-300 hover:bg-gray-400",
                           )}
                         />
                       ))}
@@ -183,7 +213,9 @@ export function RetroDashboard() {
                 <Target className="h-5 w-5 text-violet-600" />
               </div>
               <div>
-                <h4 className="mb-1 text-sm font-semibold text-foreground">정밀 분석</h4>
+                <h4 className="mb-1 text-sm font-semibold text-foreground">
+                  정밀 분석
+                </h4>
                 <p className="text-xs leading-relaxed text-muted-foreground">
                   각 카드는 데이터 기반의 상세 회고 수치를 포함하고 있습니다.
                 </p>
@@ -194,7 +226,9 @@ export function RetroDashboard() {
                 <Zap className="h-5 w-5 text-violet-600" />
               </div>
               <div>
-                <h4 className="mb-1 text-sm font-semibold text-foreground">빠른 의사결정</h4>
+                <h4 className="mb-1 text-sm font-semibold text-foreground">
+                  빠른 의사결정
+                </h4>
                 <p className="text-xs leading-relaxed text-muted-foreground">
                   실패 원인을 즉각적으로 파악하여 다음 스프린트에 반영하십시오.
                 </p>
@@ -205,9 +239,12 @@ export function RetroDashboard() {
                 <Database className="h-5 w-5 text-violet-600" />
               </div>
               <div>
-                <h4 className="mb-1 text-sm font-semibold text-foreground">히스토리 추적</h4>
+                <h4 className="mb-1 text-sm font-semibold text-foreground">
+                  히스토리 추적
+                </h4>
                 <p className="text-xs leading-relaxed text-muted-foreground">
-                  과거의 보류된 프로젝트를 다시 활성화하기 위한 최적의 시점을 찾습니다.
+                  과거의 보류된 프로젝트를 다시 활성화하기 위한 최적의 시점을
+                  찾습니다.
                 </p>
               </div>
             </div>
@@ -223,7 +260,9 @@ export function RetroDashboard() {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full bg-green-500" />
-                <span className="text-xs text-muted-foreground">System Operational</span>
+                <span className="text-xs text-muted-foreground">
+                  System Operational
+                </span>
               </div>
               <span className="text-xs text-muted-foreground hover:text-foreground cursor-pointer">
                 Privacy Policy
@@ -232,12 +271,6 @@ export function RetroDashboard() {
           </div>
         </footer>
       </main>
-
-      {/* Detail Overlay */}
-      <ProjectDetailOverlay
-        project={selectedProject}
-        onClose={() => setSelectedProject(null)}
-      />
     </div>
   );
 }
