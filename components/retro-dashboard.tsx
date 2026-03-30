@@ -100,7 +100,7 @@ export function RetroDashboard() {
             </p>
             <div className="inline-flex items-center gap-1.5 rounded-full border border-violet-200 bg-violet-50 px-3 py-1.5">
               <Sparkles className="h-3.5 w-3.5 text-violet-600" />
-              <span className="text-xs font-medium text-violet-700">AI 추천: 당신의 요청을 기반으로</span>
+              <span className="text-xs font-medium text-violet-700">AI 추천</span>
             </div>
           </div>
 
